@@ -1,0 +1,50 @@
+#!/usr/bin/env python2.7
+# coding: utf-8
+
+import os, signal, datetime, time, subprocess, re, argparse
+
+def safe_exit(signum, frame):
+  print "\r[catch sig int]"
+  exit()
+signal.signal(signal.SIGINT, safe_exit)
+
+def main(pid):
+  io_sum = fetch_io(pid)
+  order = convert_to_order(io_sum)
+  print header(order)
+  line_num = 1
+  block_line_num = 10
+  pre_val = dict(io_sum)
+  while True:
+    time.sleep(1)
+    cur_val = dict(fetch_io(pid))
+    print datetime.datetime.now().replace(microsecond = 0).isoformat(" ")+"\t"+delta(pre_val, cur_val, order)
+    pre_val = cur_val
+    line_num = line_num + 1
+    if (line_num > block_line_num):
+      print header(order)
+      line_num = 1
+
+def header(order):
+  return "date\t" + "\t".join([term+"/s" for term in order])
+def delta(pre, cur, order):
+  return "\t".join((str(cur[key] - pre[key]) for key in order))
+
+def convert_to_order(io_sum):
+  return [pair[0] for pair in io_sum]
+def fetch_io(pid):
+  try:
+    with open(os.path.join("/", "proc", pid, "io")) as f:
+      io_sum = [(pair[0], int(pair[1]))
+        for pair in (line.rstrip().split(":")
+        for line in f.readlines())]
+    return io_sum
+  except IOError as e:
+    print('[Can\'t open file.]')
+    exit()
+
+if __name__ == "__main__":
+  parser = argparse.ArgumentParser(description='I/O probe for process.')
+  parser.add_argument('pid', metavar='pid', type=int, help='target process\'s pid.')
+  args = parser.parse_args()
+  main(str(args.pid))
