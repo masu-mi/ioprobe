@@ -1,7 +1,7 @@
 ioprobe
 ================
 Ioprobe offers observability of process's I/O througput.
-This Package requires `/proc/[pid]/io`, so does'nt work in OSX and Windows.
+This Package requires `/proc/[pid]/io`, so doesn't work in OSX and Windows.
 
 Usage
 ----------
