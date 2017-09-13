@@ -72,7 +72,7 @@ def fetch_io(pid):
         return io_sum
     except IOError as e:
         print('[Can\'t open file.]')
-        exit()
+        exit(1)
 
 
 if __name__ == "__main__":
