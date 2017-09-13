@@ -1,12 +1,8 @@
 from setuptools import setup, find_packages
 import os
-import pypandoc
 
 here = os.path.abspath(os.path.dirname(__file__))
-try:
-    README = pypandoc.convert('README.md', 'rst')
-except:
-    README = open(os.path.join(here, 'README.md')).read()
+README = open(os.path.join(here, 'README.md')).read()
 NEWS = open(os.path.join(here, 'NEWS.txt')).read()
 
 
