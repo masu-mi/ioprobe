@@ -14,7 +14,15 @@ def safe_exit(signum, frame):
 signal.signal(signal.SIGINT, safe_exit)
 
 
-def main(pid, json_output):
+def main():
+    parser = argparse.ArgumentParser(description='I/O probe for process.')
+    parser.add_argument('pid', metavar='pid', type=int,
+                        help='target process\'s pid.')
+    parser.add_argument('--json', dest='json_output', action='store_const',
+                        const=True, default=False,
+                        help='change command\'s output to JSON.')
+    args = parser.parse_args()
+    pid, json_output = str(args.pid), args.json_output
     io_sum = fetch_io(pid)
     order = convert_to_order(io_sum)
     if (not json_output):
@@ -68,11 +76,4 @@ def fetch_io(pid):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='I/O probe for process.')
-    parser.add_argument('pid', metavar='pid', type=int,
-                        help='target process\'s pid.')
-    parser.add_argument('--json', dest='json_output', action='store_const',
-                        const=True, default=False,
-                        help='change command\'s output to JSON.')
-    args = parser.parse_args()
-    main(str(args.pid), args.json_output)
+    main()

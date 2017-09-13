@@ -46,6 +46,5 @@ setup(name='ioprobe',
       zip_safe=False,
       install_requires=install_requires,
       entry_points={
-          'console_scripts':
-              ['ioprobe=ioprobe:main']
+          'console_scripts': ['ioprobe=ioprobe:main']
       })
