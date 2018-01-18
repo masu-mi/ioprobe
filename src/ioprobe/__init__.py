@@ -12,9 +12,6 @@ def safe_exit(signum, frame):
     print("\r[catch sig int]")
     exit()
 
-signal.signal(signal.SIGINT, safe_exit)
-
-
 class DeltaReport(object):
     """Report manages format, interval, display items"""
     def __init__(self, source_items, snapshots,
@@ -60,8 +57,7 @@ def header(order):
     return "# date\t" + "\t".join((term+"/s" for term in order))
 def separeted_records(separator, record):
     return separator.join([ str(val) for val in record.values()])
-def convert_to_order(io_sum):
-    return [pair[0] for pair in io_sum]
+
 def main():
     parser = argparse.ArgumentParser(description='I/O probe for process.')
     parser.add_argument('pid', metavar='pid', type=int,
@@ -70,20 +66,11 @@ def main():
                         const=True, default=False,
                         help='change command\'s output to JSON.')
     args = parser.parse_args()
-    pid, json_output = str(args.pid), args.json_output
-    report = DeltaReport(helper.source_items(pid), helper.snapshots(pid),
+    signal.signal(signal.SIGINT, safe_exit)
+    report = DeltaReport(helper.source_items(args.pid), helper.snapshots(args.pid),
             json = args.json_output)
     for line in report.start():
         print(line)
-
-# def delta(pre, cur, order, json_output):
-#     if (json_output):
-#         row = {order[0]: cur[order[0]]}
-#         row.update(dict((key, (cur[key] - pre[key])) for key in order[1:]))
-#         return row
-#     else:
-#         return cur[order[0]]+"\t" + "\t".join(
-#                 (str(cur[key] - pre[key]) for key in order[1:]))
 
 if __name__ == "__main__":
     main()
