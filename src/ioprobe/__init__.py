@@ -1,11 +1,12 @@
 # coding: utf-8
 
-import os
 import signal
-import datetime
+from datetime import datetime
 import time
 import argparse
-
+import json
+from collections import OrderedDict
+from ioprobe import helper
 
 def safe_exit(signum, frame):
     print("\r[catch sig int]")
@@ -14,6 +15,53 @@ def safe_exit(signum, frame):
 signal.signal(signal.SIGINT, safe_exit)
 
 
+class DeltaReport(object):
+    """Report manages format, interval, display items"""
+    def __init__(self, source_items, snapshots,
+            interval = 1, block_line_num = 10,
+            json = True):
+        """new Report(pid, interval, format, nums)"""
+        self.source_items = source_items
+        self.snapshots = snapshots
+        self.interval = interval
+        self.block_line_num = block_line_num
+        self.json = json
+
+    def header(self):
+        return header(self.source_items)
+
+    def start(self):
+        if not self.json:
+            yield self.header()
+        before_timestamp = None
+        before = None
+        line_num = 1
+        self.block_line_num
+        for snapshot in self.snapshots:
+            timestamp = datetime.now()
+            if not before is None:
+                record = OrderedDict(
+                        date = timestamp.replace(microsecond=0).isoformat(" "))
+                helper.note_delta(record, self.source_items, snapshot, before,
+                        (timestamp - before_timestamp).total_seconds())
+                if self.json:
+                    yield json.dumps(record)
+                else:
+                    yield separeted_records("\t", record)
+                    line_num = line_num + 1
+                    if line_num > self.block_line_num:
+                        yield self.header()
+                        line_num = 1
+            before = snapshot
+            before_timestamp = timestamp
+            time.sleep(self.interval)
+
+def header(order):
+    return "# date\t" + "\t".join((term+"/s" for term in order))
+def separeted_records(separator, record):
+    return separator.join([ str(val) for val in record.values()])
+def convert_to_order(io_sum):
+    return [pair[0] for pair in io_sum]
 def main():
     parser = argparse.ArgumentParser(description='I/O probe for process.')
     parser.add_argument('pid', metavar='pid', type=int,
@@ -23,57 +71,19 @@ def main():
                         help='change command\'s output to JSON.')
     args = parser.parse_args()
     pid, json_output = str(args.pid), args.json_output
-    io_sum = fetch_io(pid)
-    order = convert_to_order(io_sum)
-    if (not json_output):
-        print(header(order))
-    line_num = 1
-    block_line_num = 10
-    pre_val = dict(io_sum)
-    while True:
-        time.sleep(1)
-        cur_val = dict(fetch_io(pid))
-        print(delta(pre_val, cur_val, order, json_output))
-        pre_val = cur_val
-        line_num = line_num + 1
-        if (not json_output and line_num > block_line_num):
-            print(header(order))
-            line_num = 1
+    report = DeltaReport(helper.source_items(pid), helper.snapshots(pid),
+            json = args.json_output)
+    for line in report.start():
+        print(line)
 
-
-def header(order):
-    return order[0]+"\t" + "\t".join((term+"/s" for term in order[1:]))
-
-
-def delta(pre, cur, order, json_output):
-    if (json_output):
-        row = {order[0]: cur[order[0]]}
-        row.update(dict((key, (cur[key] - pre[key])) for key in order[1:]))
-        return row
-    else:
-        return cur[order[0]]+"\t" + "\t".join(
-                (str(cur[key] - pre[key]) for key in order[1:]))
-
-
-def convert_to_order(io_sum):
-    return [pair[0] for pair in io_sum]
-
-
-def fetch_io(pid):
-    try:
-        with open(os.path.join("/", "proc", pid, "io")) as f:
-            io_sum = [(
-                "date",
-                datetime.datetime.now().replace(microsecond=0).isoformat(" "))]
-            io_sum.extend(
-                [(pair[0], int(pair[1]))
-                 for pair in (line.rstrip().split(":")
-                 for line in f.readlines())])
-        return io_sum
-    except IOError as e:
-        print('[Can\'t open file.]')
-        exit(1)
-
+# def delta(pre, cur, order, json_output):
+#     if (json_output):
+#         row = {order[0]: cur[order[0]]}
+#         row.update(dict((key, (cur[key] - pre[key])) for key in order[1:]))
+#         return row
+#     else:
+#         return cur[order[0]]+"\t" + "\t".join(
+#                 (str(cur[key] - pre[key]) for key in order[1:]))
 
 if __name__ == "__main__":
     main()
