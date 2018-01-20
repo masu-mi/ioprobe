@@ -1,5 +1,8 @@
 ioprobe
 ================
+.. image:: https://circleci.com/gh/masu-mi/ioprobe/tree/master.svg?style=svg
+    :target: https://circleci.com/gh/masu-mi/ioprobe/tree/master
+
 Ioprobe offers observability of process's I/O througput.
 This Package requires `/proc/[pid]/io`, so doesn't work in OSX and Windows.
 
