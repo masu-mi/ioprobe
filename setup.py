@@ -41,7 +41,7 @@ setup(name='ioprobe',
         zip_safe=False,
         install_requires=install_requires,
         extras_require = {
-            'test': ['pytest'],
+            'test': ['pytest', 'tox'],
             },
         entry_points={
             'console_scripts': ['ioprobe=ioprobe:main']
