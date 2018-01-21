@@ -43,7 +43,7 @@ setup(name='ioprobe',
         extras_require = {
             'test': [
                 'pytest', 'tox',
-                "mock if python_version < 3.3.0"
+                'mock;python_version<"3.3.0"'
                 ],
             },
         entry_points={
