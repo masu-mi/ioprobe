@@ -41,7 +41,10 @@ setup(name='ioprobe',
         zip_safe=False,
         install_requires=install_requires,
         extras_require = {
-            'test': ['pytest', 'tox'],
+            'test': [
+                'pytest', 'tox',
+                "mock if python_version < 3.3.0"
+                ],
             },
         entry_points={
             'console_scripts': ['ioprobe=ioprobe:main']
