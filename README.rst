@@ -2,6 +2,8 @@ ioprobe
 ================
 .. image:: https://circleci.com/gh/masu-mi/ioprobe/tree/master.svg?style=svg
     :target: https://circleci.com/gh/masu-mi/ioprobe/tree/master
+.. image:: https://badge.fury.io/py/ioprobe.svg
+    :target: https://badge.fury.io/py/ioprobe
 
 Ioprobe offers observability of process's I/O througput.
 This Package requires `/proc/[pid]/io`, so doesn't work in OSX and Windows.
